@@ -20,7 +20,7 @@ conn = psycopg2.connect(
 
 
 cursor = conn.cursor()
-cursor.execute('SELECT * FROM "public"."job_data_job"')
+cursor.execute('SELECT * FROM "public"."job_data_job" LIMIT=10')
 rows = cursor.fetchall()
 cursor.close()
 conn.close()
@@ -107,11 +107,11 @@ app.layout = html.Div(
 #     Input('dropdown-selection', 'value')
 # )
 
-def update_graph(value):
-    # Choose the base dataset filtered by country
-    dff = df[df.title==value]
-    # Choose X / Y Axis data
-    return px.line(dff, x='title', y='salary')
+# def update_graph(value):
+#     # Choose the base dataset filtered by country
+#     dff = df[df.title==value]
+#     # Choose X / Y Axis data
+#     return px.line(dff, x='title', y='salary')
 
 if __name__ == '__main__':
     app.run_server(debug=True)
