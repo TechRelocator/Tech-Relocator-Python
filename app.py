@@ -114,4 +114,4 @@ def update_graph(value):
     return px.line(dff, x='title', y='salary')
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
