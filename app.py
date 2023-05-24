@@ -5,6 +5,7 @@ import psycopg2
 import plotly.graph_objects as go
 import environ
 
+
 # ENV setup
 env = environ.Env(
     DEBUG=(bool, False),
@@ -54,6 +55,8 @@ for row in rows:
 # df = pd.DataFrame(data)
 
 app = Dash(__name__)
+server = app.server
+
 
 app.layout = html.Div(
     children=[
@@ -114,4 +117,4 @@ def update_graph(value):
     return px.line(dff, x='title', y='salary')
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
