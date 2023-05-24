@@ -61,8 +61,6 @@ for row in rows:
     else:
         data["salary_high"].append(row[8])
 
-# Start app and call in the theme
-app = Dash(__name__, external_stylesheets=[dbc.themes.VAPOR])
 
 # Determine the maximum length of the lists in the data dictionary
 max_length = max(len(v) for v in data.values())
@@ -96,6 +94,10 @@ api_data = [
     }
     for entry in api_data
 ]
+
+# Start app and call in the theme
+app = Dash(__name__, external_stylesheets=[dbc.themes.VAPOR])
+
 
 
 # Creates the layout for all divs in our app, each div contains an object
