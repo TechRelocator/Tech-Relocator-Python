@@ -8,6 +8,7 @@ import dash_bootstrap_components as dbc
 import numpy as np
 from app6 import generate_3d_scatter
 import requests
+import dash
 
 # ENV setup
 env = environ.Env(
@@ -60,9 +61,6 @@ for row in rows:
     else:
         data["salary_high"].append(row[8])
 
-# Start app and call in the theme
-app = Dash(__name__, external_stylesheets=[dbc.themes.VAPOR])
-server = app.server
 
 # Determine the maximum length of the lists in the data dictionary
 max_length = max(len(v) for v in data.values())
@@ -96,6 +94,10 @@ api_data = [
     }
     for entry in api_data
 ]
+
+# Start app and call in the theme
+app = Dash(__name__, external_stylesheets=[dbc.themes.VAPOR])
+server = app.server
 
 
 # Creates the layout for all divs in our app, each div contains an object
@@ -200,6 +202,13 @@ def update_now(click):
     Input("geolocation", "position"),
 )
 def display_output(date, pos):
+    if pos is None:
+        pos = {'lat': 47.6034, 'lon': -122.3414, 'accuracy': 1, 'alt': None, 'alt_accuracy': None, 'speed': None,
+         'heading': None}
+        location_string = "Using generic location of Seattle, WA"
+    else:
+        location_string = f"As of {date} your location was: lat {pos['lat']}, lon {pos['lon']}, accuracy {pos['accuracy']} meters"
+
     if pos:
         lat = pos['lat']
         lon = pos['lon']
@@ -256,7 +265,7 @@ def display_output(date, pos):
         )
 
         return (
-            html.P(f"As of {date} your location was: lat {lat}, lon {lon}, accuracy {pos['accuracy']} meters"),
+            html.P(location_string),
             figure
         )
 
@@ -271,7 +280,7 @@ def display_output(date, pos):
 # Pie chart render
 def update_pie_chart(click_data):
     employment_counts = df['employment_type'].value_counts()
-    print(data['employment_type'])
+    # print(data['employment_type'])
     labels = employment_counts.index.tolist()
     values = employment_counts.values.tolist()
 
@@ -361,6 +370,5 @@ def update_table(state_input):
 
     return table
 
-  
 if __name__ == '__main__':
     app.run_server(debug=True)
