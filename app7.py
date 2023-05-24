@@ -78,7 +78,7 @@ df = pd.DataFrame(data, columns=['id', 'employment_type', 'industry', 'job_funct
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
+server = app.server
 
 fig = go.Figure()
 

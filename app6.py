@@ -76,6 +76,7 @@ df = pd.DataFrame(data, columns=['id', 'employment_type', 'industry', 'job_funct
 
 
 app = dash.Dash(__name__,  external_stylesheets=[dbc.themes.VAPOR])
+server = app.server
 
 def generate_3d_scatter():
 
