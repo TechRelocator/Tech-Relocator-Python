@@ -1,6 +1,4 @@
 from dash import Dash, html, dcc, callback, Output, Input
-import plotly.express as px
-import pandas as pd
 import psycopg2
 import plotly.graph_objects as go
 import environ
@@ -63,6 +61,7 @@ for row in rows:
 
 # Start app and call in the theme
 app = Dash(__name__, external_stylesheets=[dbc.themes.VAPOR])
+server = app.server
 
 # Determine the maximum length of the lists in the data dictionary
 max_length = max(len(v) for v in data.values())
@@ -361,5 +360,6 @@ def update_table(state_input):
 
     return table
 
+  
 if __name__ == '__main__':
     app.run_server(debug=True)
