@@ -1,4 +1,6 @@
 from dash import Dash, html, dcc, callback, Output, Input
+import plotly.express as px
+import pandas as pd
 import psycopg2
 import plotly.graph_objects as go
 import environ
@@ -6,7 +8,6 @@ import dash_bootstrap_components as dbc
 import numpy as np
 from app6 import generate_3d_scatter
 import requests
-import dash
 
 # ENV setup
 env = environ.Env(
