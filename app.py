@@ -5,6 +5,9 @@ import psycopg2
 import plotly.graph_objects as go
 import environ
 import dash_bootstrap_components as dbc
+import numpy as np
+from app6 import generate_3d_scatter
+import requests
 import dash
 
 # ENV setup
@@ -13,6 +16,7 @@ env = environ.Env(
 )
 environ.Env.read_env()
 
+# Database Connection with our ENV Variables
 conn = psycopg2.connect(
     host=env('DATABASE_HOST'),
     database=env('DATABASE_NAME'),
@@ -20,7 +24,7 @@ conn = psycopg2.connect(
     password=env('DATABASE_PASSWORD'),
 )
 
-# how we search through the database after connection
+# How we search through the database after connection
 cursor = conn.cursor()
 cursor.execute('SELECT * FROM "public"."job_data_job"')
 rows = cursor.fetchall()
@@ -40,6 +44,7 @@ data = {
     "salary_high": [],
 }
 
+
 for row in rows:
     data["employment_type"].append(row[1])
     data["industry"].append(row[2])
@@ -56,16 +61,78 @@ for row in rows:
     else:
         data["salary_high"].append(row[8])
 
-# start app and call in the theme
-app = Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
+# Start app and call in the theme
+app = Dash(__name__, external_stylesheets=[dbc.themes.VAPOR])
 
-# create the layout for the map
+# Determine the maximum length of the lists in the data dictionary
+max_length = max(len(v) for v in data.values())
+
+# Fill the lists with NaN values to make them the same length
+for key in data:
+    diff = max_length - len(data[key])
+    if diff > 0:
+        data[key].extend([np.nan] * diff)
+
+df = pd.DataFrame(data, columns=['id', 'employment_type', 'industry', 'job_function', 'senority', 'location', 'education', 'months_experience', 'salary_high', 'salary_low', 'title', 'lat', 'lon'])
+
+# api data for cost of living entry
+url = f"https://tech-relocator-backend.vercel.app/api/v1/col/?state"
+
+response = requests.get(url)
+api_data = response.json()
+
+api_data = [
+    {
+        "id": entry["id"],
+        "rank": entry["rank"],
+        "state": entry["state"],
+        "index": entry["index"],
+        "grocery": entry["grocery"],
+        "housing": entry["housing"],
+        "utilities": entry["utilities"],
+        "transportation": entry["transportation"],
+        "health": entry["health"],
+        "misc": entry["misc"]
+    }
+    for entry in api_data
+]
+
+
+# Creates the layout for all divs in our app, each div contains an object
 app.layout = dbc.Container([
-    dbc.Row(
-        className='dark-theme',
-        style={'backgroundColor': 'black'},
+    dbc.NavbarSimple(
         children=[
-            html.H1("Tech Relocator: Tech Jobs Across the US"),
+            dbc.NavItem(dbc.NavLink("Home", href="#")),
+            dbc.NavItem(dbc.NavLink("About", href="#")),
+            dbc.NavItem(dbc.NavLink("Contact", href="#")),
+            ],
+        brand="Tech Relocator",
+        brand_href="#",
+        color="primary",
+        dark=True,
+    ),
+    dbc.Container(
+        [
+            html.H1("Cost of Living"),
+            dbc.Input(
+                id="state-input",
+                type="text",
+                placeholder="Enter state(s) separated by commas",
+            ),
+            html.Br(),
+            dbc.Row(
+                dbc.Col(
+                    id="table-container",
+                    children=[],
+                    width={"size": 8, "offset": 2},
+                ),
+            ),
+        ],
+        className="mt-4",
+    ),
+    dbc.Row(
+        children=[
+            html.H1("Tech Jobs Across the US"),
             html.Button("Update Position", id="update_btn"),
             dcc.Graph(
                 id='map-graph',
@@ -111,13 +178,13 @@ app.layout = dbc.Container([
         ]
     ),
     dbc.Row(
-        className='dark-theme',
-        style={'backgroundColor': 'black'},
         children=[
-                dbc.Col(
-                    dcc.Graph(id='employment-pie-chart')
-                )]
-        )
+            dbc.Col(
+                children=[
+                    dcc.Graph(id='employment-pie-chart'),
+                    generate_3d_scatter()]
+            )]
+    ),
 ])
 
 
@@ -201,13 +268,14 @@ def display_output(date, pos):
     Output('employment-pie-chart', 'figure'),
     [Input('employment-pie-chart', 'clickData')]
 )
+# Pie chart render
 def update_pie_chart(click_data):
-    employment_counts = data['employment_type'].value_counts()
+    employment_counts = df['employment_type'].value_counts()
     print(data['employment_type'])
     labels = employment_counts.index.tolist()
     values = employment_counts.values.tolist()
 
-    colors = ['darkblue', 'green', 'black']
+    colors = ['thermal']
 
     fig = go.Figure(data=[go.Pie(labels=labels, values=values, marker=dict(colors=colors))]).update_layout(
             plot_bgcolor='rgba(0,0,0,0)',
@@ -215,7 +283,83 @@ def update_pie_chart(click_data):
         )
     return fig
 
+def generate_3d_scatter(data):
+    fig = px.scatter_3d(data, x='lat', y='lon', z='months_experience', color='industry', symbol='senority')
 
+    # Customize the layout (optional)
+    fig.update_layout(
+        scene=dict(
+            xaxis_title='Latitude',
+            yaxis_title='Longitude',
+            zaxis_title='Months of Experience'
+        )
+    )
+
+    return fig
+
+
+@app.callback(
+    Output('3d-scatter-plot', 'figure'),
+    [Input('map-graph', 'figure')]  # Add other inputs if needed
+)
+def update_3d_scatter(map_figure):
+    return generate_3d_scatter(df)
+
+
+@app.callback(
+    Output("table-container", "children"),
+    [Input("state-input", "value")]
+)
+def update_table(state_input):
+    if not state_input:
+        return html.P("Please enter state(s) separated by commas.")
+
+    states = [state.strip() for state in state_input.split(",")]
+
+    # Filter data based on user input states
+    filtered_data = [d for d in api_data if d["state"].strip().lower() in [state.lower() for state in states]]
+
+    if not filtered_data:
+        return html.P("No data available for the entered state(s).")
+
+    table_rows = [
+        html.Tr([
+            html.Td(d["state"]),
+            html.Td(d["index"]),
+            html.Td(d["grocery"]),
+            html.Td(d["housing"]),
+            html.Td(d["utilities"]),
+            html.Td(d["transportation"]),
+            html.Td(d["health"]),
+            html.Td(d["misc"]),
+        ])
+        for d in filtered_data
+    ]
+
+    table = dbc.Table(
+        [
+            # Table header
+            html.Thead([
+                html.Tr([
+                    html.Th("State"),
+                    html.Th("Index"),
+                    html.Th("Grocery"),
+                    html.Th("Housing"),
+                    html.Th("Utilities"),
+                    html.Th("Transportation"),
+                    html.Th("Health"),
+                    html.Th("Misc"),
+                ])
+            ]),
+            # Table body
+            html.Tbody(table_rows),
+        ],
+        bordered=True,
+        hover=True,
+        responsive=True,
+    )
+
+    return table
 
 if __name__ == '__main__':
     app.run_server(debug=True)

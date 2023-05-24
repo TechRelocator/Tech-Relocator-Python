@@ -4,11 +4,11 @@ from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
 import pandas as pd
-
 import plotly.graph_objs as go
 import plotly.express as px
 import environ
 import psycopg2
+import dash_bootstrap_components as dbc
 
 env = environ.Env(
     DEBUG=(bool, False),
@@ -75,22 +75,33 @@ for row in rows:
 df = pd.DataFrame(data, columns=['id', 'employment_type', 'industry', 'job_function', 'senority', 'location', 'education', 'months_experience', 'salary_high', 'salary_low', 'title', 'lat', 'lon'])
 
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__,  external_stylesheets=[dbc.themes.VAPOR])
 
-# Create the 3D scatter plot
-fig = px.scatter_3d(df, x='lat', y='lon', z='months_experience', color='industry', symbol='senority')
+def generate_3d_scatter():
 
-# Customize the layout (optional)
-fig.update_layout(
-    scene=dict(
-        xaxis_title='Latitude',
-        yaxis_title='Longitude',
-        zaxis_title='Months of Experience'
+    fig = px.scatter_3d(df, x='lat', y='lon', z='months_experience', color='industry', symbol='senority')
+
+    # Customize the layout (optional)
+    fig.update_layout(
+        scene=dict(
+            xaxis_title='Latitude',
+            yaxis_title='Longitude',
+            zaxis_title='Months of Experience',
+            bgcolor='rgba(0,0,0,0)',
+        )
     )
-)
 
-# Show the plot
-fig.show()
+    return dcc.Graph(id='3d-scatter-plot', figure=fig)
+
+
+# Define the layout of the Dash app
+app.layout = dbc.Container([
+    dbc.Row(
+        children=[
+            generate_3d_scatter()
+        ]
+    )
+])
 
 
 # Run the app

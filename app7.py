@@ -1,14 +1,16 @@
+import plotly.express as px
 import dash
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
 import pandas as pd
-
 import plotly.graph_objs as go
 import plotly.express as px
 import environ
 import psycopg2
-import requests
+import dash_bootstrap_components as dbc
+# Create the initial figure object
+
 
 env = environ.Env(
     DEBUG=(bool, False),
@@ -75,41 +77,52 @@ for row in rows:
 df = pd.DataFrame(data, columns=['id', 'employment_type', 'industry', 'job_function', 'senority', 'location', 'education', 'months_experience', 'salary_high', 'salary_low', 'title', 'lat', 'lon'])
 
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-app.layout = html.Div([
-    html.H1('Job Search'),
-    dcc.Input(id='skill-input', type='text', placeholder='Enter a skill'),
-    html.Button('Search', id='search-button'),
-    html.Div(id='job-table-container')
+
+fig = go.Figure()
+
+# Customize the layout of the figure
+fig.update_layout(
+    scene=dict(
+        xaxis_title='Latitude',
+        yaxis_title='Longitude',
+        zaxis_title='Months of Experience'
+    )
+)
+
+# Define the function to update the figure
+def update_3d_scatter():
+    fig.data = [
+        go.Scatter3d(
+            x=df['lat'],
+            y=df['lon'],
+            z=df['months_experience'],
+            mode='markers',
+            marker=dict(
+                color=df['thermal'],
+                symbol=df['senority']
+            )
+        )
+    ]
+
+# Define the layout of the Dash app
+app.layout = dbc.Container([
+    dbc.Row(
+        children=[
+            dcc.Graph(id='3d-scatter-plot', figure=fig),
+            dcc.Input(id='hidden-input', type='hidden', value='')
+        ]
+    )
 ])
 
+# Define the callback function to update the figure
+@app.callback(Output('3d-scatter-plot', 'figure'), [Input('hidden-input', 'value')])
+def update_figure(value):
+    update_3d_scatter()
+    return fig
 
-@app.callback(
-    dash.dependencies.Output('job-table-container', 'children'),
-    [dash.dependencies.Input('search-button', 'n_clicks')],
-    [dash.dependencies.State('skill-input', 'value')]
-)
-def update_job_table(n_clicks, skill):
-    if n_clicks is not None and skill:
-        # Make a request to your backend API using the entered skill
-        api_url = f'https://tech-relocator-backend-4436gsx7g-tech-relocator.vercel.app/api/v1/skills/?search={skill}'
-        response = requests.get(api_url)
-
-        if response.status_code == 200:
-            jobs = response.json()
-            # Assuming your API response is a list of job objects
-            df = pd.DataFrame(jobs)
-            # Create a table from the fetched job data
-            table = html.Table(
-                # Create the table header
-                [html.Tr([html.Th(col) for col in df.columns])] +
-                # Create the table rows
-                [html.Tr([html.Td(df.iloc[i][col]) for col in df.columns]) for i in range(len(df))]
-            )
-            return table
-        else:
-            return 'Error: Failed to fetch job data'
+    # Run the Dash app
 
 
 if __name__ == '__main__':
