@@ -6,7 +6,7 @@ WORKDIR /code
 COPY requirements.txt /code/
 RUN pip install -r requirements.txt
 COPY . /code/
-CMD gunicorn app:server
+#CMD gunicorn app:server
 
 #docker build -t test1 .
 #docker run -p 8000:8000 test1
