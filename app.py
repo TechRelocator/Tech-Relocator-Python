@@ -1,6 +1,4 @@
 from dash import Dash, html, dcc, callback, Output, Input
-import plotly.express as px
-import pandas as pd
 import psycopg2
 import plotly.graph_objects as go
 import environ
@@ -20,7 +18,7 @@ conn = psycopg2.connect(
 
 
 cursor = conn.cursor()
-cursor.execute('SELECT * FROM "public"."job_data_job" LIMIT=10')
+cursor.execute('SELECT * FROM "public"."job_data_job"')
 rows = cursor.fetchall()
 cursor.close()
 conn.close()
@@ -55,6 +53,8 @@ for row in rows:
 
 app = Dash(__name__)
 
+server = app.server
+
 app.layout = html.Div(
     children=[
         html.H1("Map with Data Overlay"),
@@ -87,31 +87,6 @@ app.layout = html.Div(
         )
     ]
 )
-
-
-
-
-
-# app.layout = html.Div([
-#     html.H1(children='Title of Dash App', style={'textAlign':'center'}),
-#
-#     # Pick out one column for the dropdown, with Canada as the default selection
-#     dcc.Dropdown(df.title.unique(), 'Senior Data Engineer', id='dropdown-selection'),
-#
-#     # Creates graph
-#     dcc.Graph(id='graph-content')
-# ])
-
-# @callback(
-#     Output('graph-content', 'figure'),
-#     Input('dropdown-selection', 'value')
-# )
-
-# def update_graph(value):
-#     # Choose the base dataset filtered by country
-#     dff = df[df.title==value]
-#     # Choose X / Y Axis data
-#     return px.line(dff, x='title', y='salary')
 
 if __name__ == '__main__':
     app.run_server(debug=True)
