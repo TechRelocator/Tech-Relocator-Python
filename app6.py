@@ -88,7 +88,7 @@ def generate_3d_scatter():
             xaxis_title='Latitude',
             yaxis_title='Longitude',
             zaxis_title='Months of Experience',
-            bgcolor='rgba(0,0,0,0)',
+            bgcolor='rgb(51,255,255)',
         )
     )
 
