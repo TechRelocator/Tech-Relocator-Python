@@ -1,6 +1,6 @@
 # Tech-Relocator-Python
 
-
+![Picture](https://github.com/TechRelocator/Tech-Relocator-Python/blob/308928c441a457e8e9434501f2ba111dfe8c2fa0/pc%20view%20tech%20relocator.png)
 
 ## Team Members
 - Diontre Sanders
