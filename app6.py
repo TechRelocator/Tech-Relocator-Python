@@ -76,6 +76,7 @@ df = pd.DataFrame(data, columns=['id', 'employment_type', 'industry', 'job_funct
 
 
 app = dash.Dash(__name__,  external_stylesheets=[dbc.themes.VAPOR])
+server = app.server
 
 def generate_3d_scatter():
 
@@ -87,7 +88,7 @@ def generate_3d_scatter():
             xaxis_title='Latitude',
             yaxis_title='Longitude',
             zaxis_title='Months of Experience',
-            bgcolor='rgba(0,0,0,0)',
+            bgcolor='rgb(51,255,255)',
         )
     )
 

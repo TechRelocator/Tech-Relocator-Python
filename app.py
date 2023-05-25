@@ -42,6 +42,7 @@ data = {
     "employment_type": [],
     "education": [],
     "salary_high": [],
+    "skills":[],
 }
 
 
@@ -52,6 +53,7 @@ for row in rows:
     data["title"].append(row[10])  # Assuming the x-values are in the first column
     data["Latitude"].append(row[11])
     data["Longitude"].append(row[12])
+    data["skills"].append(row[13])
     if row[8] is None:
         data["Value"].append(100000)
     else:
@@ -71,7 +73,7 @@ for key in data:
     if diff > 0:
         data[key].extend([np.nan] * diff)
 
-df = pd.DataFrame(data, columns=['id', 'employment_type', 'industry', 'job_function', 'senority', 'location', 'education', 'months_experience', 'salary_high', 'salary_low', 'title', 'lat', 'lon'])
+df = pd.DataFrame(data, columns=['id', 'employment_type', 'industry', 'job_function', 'senority', 'location', 'education', 'months_experience', 'salary_high', 'salary_low', 'title', 'lat', 'lon', 'skills'])
 
 # api data for cost of living entry
 url = f"https://tech-relocator-backend.vercel.app/api/v1/col/?state"
@@ -97,6 +99,7 @@ api_data = [
 
 # Start app and call in the theme
 app = Dash(__name__, external_stylesheets=[dbc.themes.VAPOR])
+server = app.server
 
 
 
@@ -190,6 +193,8 @@ app.layout = dbc.Container([
 ])
 
 
+
+
 @app.callback(Output("geolocation", "update_now"), Input("update_btn", "n_clicks"))
 def update_now(click):
     return True if click and click > 0 else False
@@ -202,6 +207,13 @@ def update_now(click):
     Input("geolocation", "position"),
 )
 def display_output(date, pos):
+    if pos is None:
+        pos = {'lat': 47.6034, 'lon': -122.3414, 'accuracy': 1, 'alt': None, 'alt_accuracy': None, 'speed': None,
+         'heading': None}
+        location_string = "Using generic location of Seattle, WA"
+    else:
+        location_string = f"As of {date} your location was: lat {pos['lat']}, lon {pos['lon']}, accuracy {pos['accuracy']} meters"
+
     if pos:
         lat = pos['lat']
         lon = pos['lon']
@@ -226,13 +238,15 @@ def display_output(date, pos):
                         "<b>Industry:</b> %{customdata[2]}<br>"
                         "<b>Education:</b> %{customdata[3]}<br>"
                         "<b>Salary High:</b> %{customdata[4]}<br><extra></extra>"
+                        "<b>skills:</b> %{customdata[5]}<br><extra></extra>"
                     ),
                     customdata=list(zip(
                         data['title'],
                         data['employment_type'],
                         data['industry'],
                         data['education'],
-                        data['salary_high']
+                        data['salary_high'],
+                        data['skills'],
                     ))
                 )
             ],
@@ -258,7 +272,7 @@ def display_output(date, pos):
         )
 
         return (
-            html.P(f"As of {date} your location was: lat {lat}, lon {lon}, accuracy {pos['accuracy']} meters"),
+            html.P(location_string),
             figure
         )
 
@@ -273,7 +287,7 @@ def display_output(date, pos):
 # Pie chart render
 def update_pie_chart(click_data):
     employment_counts = df['employment_type'].value_counts()
-    print(data['employment_type'])
+    # print(data['employment_type'])
     labels = employment_counts.index.tolist()
     values = employment_counts.values.tolist()
 
@@ -285,27 +299,28 @@ def update_pie_chart(click_data):
         )
     return fig
 
-def generate_3d_scatter(data):
-    fig = px.scatter_3d(data, x='lat', y='lon', z='months_experience', color='industry', symbol='senority')
+# def generate_3d_scatter(df):
+#     fig = px.scatter_3d(df, x='lat', y='lon', z='months_experience', color='industry', symbol='senority')
+#
+#     # Customize the layout (optional)
+#     fig.update_layout(
+#         scene=dict(
+#             xaxis_title='Latitude',
+#             yaxis_title='Longitude',
+#             zaxis_title='Months of Experience',
+#             bgcolor='rbg(0,0,0,0)',
+#         )
+#     )
+#
+#     return fig
 
-    # Customize the layout (optional)
-    fig.update_layout(
-        scene=dict(
-            xaxis_title='Latitude',
-            yaxis_title='Longitude',
-            zaxis_title='Months of Experience'
-        )
-    )
 
-    return fig
-
-
-@app.callback(
-    Output('3d-scatter-plot', 'figure'),
-    [Input('map-graph', 'figure')]  # Add other inputs if needed
-)
-def update_3d_scatter(map_figure):
-    return generate_3d_scatter(df)
+# @app.callback(
+#     Output('3d-scatter-plot', 'figure'),
+#     [Input('map-graph', 'figure')]  # Add other inputs if needed
+# )
+# def update_3d_scatter(map_figure):
+#     return generate_3d_scatter(df)
 
 
 @app.callback(
