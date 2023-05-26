@@ -15,6 +15,18 @@ Search for cost of living data across the USA
 
 Data Visualization for Tech Jobs across the US
 
+# APP
+
+Tech Relocator 
+1.0 - Map rendered with data connecting to database
+1.2 - Map Job rendering with data
+1.3 - Adding styling to website to introduce data visualization
+1.5 - Added pie chart and 3d map for users
+1.6 - Added Cost of living to front end from data for users
+1.8 - Introduced skills per job for users across the map
+2.0 - Added titles to all data visualization, deployed for users (https://tech-relocator1.herokuapp.com/)
+
+
 
 ## Trello
 [Board](https://trello.com/b/Vh0RhuDe/tech-relocator)
