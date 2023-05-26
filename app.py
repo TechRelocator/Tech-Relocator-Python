@@ -137,7 +137,7 @@ app.layout = dbc.Container([
     ),
     dbc.Row(
         children=[
-            html.H1("Tech Jobs Across the US"),
+            html.H1("Tech Jobs Across the World"),
             html.Button("Update Position", id="update_btn"),
             dcc.Graph(
                 id='map-graph',
