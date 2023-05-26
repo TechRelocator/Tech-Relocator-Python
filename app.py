@@ -106,11 +106,11 @@ server = app.server
 # Creates the layout for all divs in our app, each div contains an object
 app.layout = dbc.Container([
     dbc.NavbarSimple(
-        children=[
-            dbc.NavItem(dbc.NavLink("Home", href="#")),
-            dbc.NavItem(dbc.NavLink("About", href="#")),
-            dbc.NavItem(dbc.NavLink("Contact", href="#")),
-            ],
+        # children=[
+        #     dbc.NavItem(dbc.NavLink("Home", href="#")),
+        #     dbc.NavItem(dbc.NavLink("About", href="#")),
+        #     dbc.NavItem(dbc.NavLink("Contact", href="#")),
+        #     ],
         brand="Tech Relocator",
         brand_href="#",
         color="primary",
@@ -118,7 +118,7 @@ app.layout = dbc.Container([
     ),
     dbc.Container(
         [
-            html.H1("Cost of Living"),
+            html.H1("Cost of Living Per State"),
             dbc.Input(
                 id="state-input",
                 type="text",
@@ -152,7 +152,7 @@ app.layout = dbc.Container([
                                 size=10,
                                 color=data['Value'],
                                 colorscale='portland',
-                                colorbar=dict(title='Value')
+                                colorbar=dict(title='Salary')
                             ),
                             text=data['title']
                         )
@@ -186,7 +186,9 @@ app.layout = dbc.Container([
         children=[
             dbc.Col(
                 children=[
+                    html.H1("Employment Type"),
                     dcc.Graph(id='employment-pie-chart'),
+                    html.H1("Industry vs Experience Required vs Location"),
                     generate_3d_scatter()]
             )]
     ),
@@ -229,7 +231,7 @@ def display_output(date, pos):
                         size=10,
                         color=data['Value'],
                         colorscale='thermal',
-                        colorbar=dict(title='Value')
+                        colorbar=dict(title='Salary')
                     ),
                     text=data['title'],
                     hovertemplate=(
